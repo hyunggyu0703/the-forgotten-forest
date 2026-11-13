@@ -1,0 +1,14 @@
+export const PHOTO_ORDER=['photo3','photo1','photo4','photo2'];
+export const ACCESS_CODE='0814';
+export const notes={
+ letter:['누군가 남긴 편지','깨어났다면 빛을 찾아. 북쪽 길의 관리인 오두막으로 와. 사진 네 조각을 모으면 철문의 기억이 돌아올 거야.\n\n숲은 네가 달리는 소리를 듣는다.\n— M.'],
+ diary:['관리인의 일지 · 8월 14일','사진 뒷면에 순서를 새겼다.\nIII → I → IV → II\n\n오두막의 황동 열쇠는 북쪽 철문에 맞는다. 사진을 맞추면 기록관으로 가는 길을 알 수 있다.\n\n그 존재는 빛보다 발소리에 민감하다. 나무와 바위 뒤에서 몸을 낮추고 기다려라.'],
+ record:['사건 기록 · BLACKWOOD / 1986','1986년 8월 14일. 숲의 관측 실험이 중단되었다. 피험자들은 기억을 잃었고, 남겨진 기억은 숲에서 형체를 얻었다.\n\n보관함 암호는 실험이 중단된 날짜 네 자리. 월 두 자리, 일 두 자리.\n비상 전력 스위치를 먼저 올린 뒤 보관함에서 탈출 퓨즈를 찾아라.'],
+ truth:['이름이 지워진 편지','그것은 괴물이 아니었다. 네가 두고 온 기억이었다.\n\n나는 네 동생 미라야. 넌 나를 구하려고 숲으로 돌아왔어. 하지만 기억을 버린 채 나가면 모든 것이 반복돼.\n\n사건 기록과 이 편지를 함께 가져가. 이번에는 우리 둘 다 집으로 돌아가자.']
+};
+export class PuzzleManager {
+ constructor(g){this.g=g;this.selected=[];}
+ photo(){const g=this.g;if(!['photo1','photo2','photo3','photo4'].every(x=>g.state.items.includes(x))){g.toast('사진 조각 네 개가 필요합니다. 오두막 안과 주변을 살펴보세요.');return;}this.selected=[];this.drawPhoto();}
+ drawPhoto(){this.g.panel('흩어진 기억',`<p>관리인의 일지에 남겨진 순서대로 조각을 배치하세요.</p><div class="photo-slots">${this.selected.map((x,i)=>`<span>${i+1} / ${x.replace('photo','조각 ')}</span>`).join('')||'<span>네 조각을 선택하세요</span>'}</div><div class="photo-grid">${['photo1','photo2','photo3','photo4'].map((id,i)=>`<button class="photo-piece piece-${i}" data-piece="${id}" ${this.selected.includes(id)?'disabled':''}><span>0${i+1}</span><small>${['THE','REMEMBERS','FOREST','YOU'][i]}</small></button>`).join('')}</div><button id="reset-photo" class="subtle">다시 배치</button>`,()=>{document.querySelectorAll('[data-piece]').forEach(b=>b.onclick=()=>{this.selected.push(b.dataset.piece);if(this.selected.length===4){if(this.selected.join()===PHOTO_ORDER.join()){this.g.state.puzzles.photo=true;this.g.solve('사진이 완성되었습니다. 북쪽 철문 너머, 기록관으로.');this.g.closePanel();}else{this.g.toast('풍경이 이어지지 않습니다. 일지의 순서를 확인하세요.');this.selected=[];this.drawPhoto();}}else this.drawPhoto();});document.querySelector('#reset-photo').onclick=()=>{this.selected=[];this.drawPhoto();};});}
+ code(){if(!this.g.state.puzzles.switch){this.g.toast('보관함에 전력이 없습니다. 반대편 스위치를 찾으세요.');return;}this.g.panel('기록 보관함',`<p>실험이 중단된 날짜 · 월 / 일</p><form id="code-form"><input id="code-input" aria-label="네 자리 암호" maxlength="4" inputmode="numeric" placeholder="— — — —" autocomplete="off"><button>UNLOCK</button><p id="code-error" role="status"></p></form>`,()=>{document.querySelector('#code-form').onsubmit=e=>{e.preventDefault();if(document.querySelector('#code-input').value===ACCESS_CODE){if(!this.g.state.items.includes('fuse'))this.g.state.items.push('fuse');this.g.state.puzzles.code=true;this.g.solve('탈출 퓨즈를 얻었습니다. 북쪽 비상 철문으로 이동하세요.');this.g.closePanel();}else{document.querySelector('#code-error').textContent='잘못된 암호입니다. 사건 기록의 날짜를 확인하세요.';this.g.audio.click();}};});}
+}
